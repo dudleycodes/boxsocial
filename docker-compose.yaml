@@ -12,8 +12,8 @@ services:
     environment:
       - MYSQL_DATABASE=boxsocialdev
       - MYSQL_ROOT_PASSWORD=tB79A5XywneQT
-    ports:
-      - '3306:3306'
+    #ports:
+    #  - '3306:3306'
     volumes:
       - db:/var/lib/mysql
       - ./deploy/mysql/local/:/data/application/
