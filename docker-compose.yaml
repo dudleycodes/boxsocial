@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: "mysql:8"
+    restart: unless-stopped
+    command: --init-file /data/application/init.sql
+    healthcheck:
+        test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+        timeout: 6s
+        retries: 15
+    environment:
+      - MYSQL_DATABASE=boxsocialdev
+      - MYSQL_ROOT_PASSWORD=tB79A5XywneQT
+    ports:
+      - '3306:3306'
+    volumes:
+      - db:/var/lib/mysql
+      - ./deploy/mysql/local/:/data/application/
+    networks:
+      - dataplane
+
+  boxsocial:
+    image: "dudleycodes/boxsocial:alpha"
+    restart: unless-stopped
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/boxsocialdev?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=tB79A5XywneQT
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '8080:8080'
+    networks:
+      - dataplane
+
+  # phpmyadmin:
+  #   image: phpmyadmin/phpmyadmin:latest
+  #   restart: unless-stopped
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   healthcheck:
+  #       test: curl --fail http://localhost:80 || exit 1
+  #       timeout: 6s
+  #       retries: 15
+  #   environment:
+  #     PMA_HOST: db
+  #     PMA_PORT: 3306
+  #   ports:
+  #     - 8081:80
+  #   networks:
+  #       - dataplane
+
+
+networks:
+  default:
+    external: true
+  dataplane:
+    external: false
+
+
+volumes:
+  db:
+    driver: local

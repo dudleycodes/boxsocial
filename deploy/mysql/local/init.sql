@@ -1,0 +1,22 @@
+CREATE DATABASE IF NOT EXISTS `boxsocialdev` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `boxsocialdev`;
+
+create table attendance_attendees (date_of_birth date, on_leave bit not null, verified_dob boolean default false not null, verified_waiver boolean default false not null, checked_in datetime(6), checked_out datetime(6), id binary(16) not null, registrant_id binary(16) not null, payment_note varchar(128), registration_note varchar(128), email_address varchar(255), full_name varchar(255), scan_code varchar(255), seat varchar(255), username varchar(255), primary key (id)) engine=InnoDB;
+create table attendance_equipment (attendee_id binary(16) not null, id binary(16) not null, category varchar(24) not null, scan_code varchar(24) not null, notes varchar(128), primary key (id)) engine=InnoDB;
+create table registration_events (active boolean default false not null, id binary(16) not null, alias varchar(255) not null, import_source enum ('LanfestLegacy','ManualEntry') not null, name varchar(255) not null, source_id varchar(255) not null, primary key (id)) engine=InnoDB;
+create table registration_registrants (date_of_birth date, id binary(16) not null, first_name varchar(48), last_name varchar(64), notes varchar(128), email_address varchar(255), import_source enum ('LanfestLegacy','ManualEntry') not null, source_id varchar(255), username varchar(255), primary key (id)) engine=InnoDB;
+create table registration_seats (locked bit not null, id binary(16) not null, reserved_by_ticket_id binary(16), ticket_type_id binary(16), import_source enum ('LanfestLegacy','ManualEntry') not null, label varchar(255) not null, source_id varchar(255) not null, primary key (id)) engine=InnoDB;
+create table registration_ticket_types (cost_door decimal(38,2) not null, cost_presale decimal(38,2) not null, max_allowed bigint not null, id binary(16) not null, name varchar(64) not null, source_id varchar(64) not null, description varchar(255), import_source enum ('LanfestLegacy','ManualEntry') not null, primary key (id)) engine=InnoDB;
+create table registration_tickets (attendee_id binary(16), id binary(16) not null, registrant_id binary(16) not null, ticket_type_id binary(16) not null, notes varchar(128), primary key (id)) engine=InnoDB;
+create table system_logs (create_date_time datetime(6), id bigint not null, message varchar(256), primary key (id)) engine=InnoDB;
+create table system_logs_seq (next_val bigint) engine=InnoDB;
+insert into system_logs_seq values ( 1 );
+alter table attendance_attendees add constraint UK_aotlb4naa7snbxiseles7wt0q unique (registrant_id);
+alter table registration_events add constraint UK_7wrnqq8coih2fkdi6y7wuku6c unique (alias);
+alter table attendance_attendees add constraint FKojgb6uamy86h4d2d6vjjj0qe6 foreign key (registrant_id) references registration_registrants (id);
+alter table attendance_equipment add constraint FKsl5egpr87x9tsqlg2efuko5k foreign key (attendee_id) references attendance_attendees (id);
+alter table registration_seats add constraint FKaewqkk2r0hk5qrajv800j2d10 foreign key (reserved_by_ticket_id) references registration_tickets (id);
+alter table registration_seats add constraint FKf9nxxf72rlaxg7yjaf44fcmxn foreign key (ticket_type_id) references registration_ticket_types (id);
+alter table registration_tickets add constraint FKl0612k5bofdyc7dgec1foweji foreign key (attendee_id) references attendance_attendees (id);
+alter table registration_tickets add constraint FK2cft2j35o4e1n07gs90462rwu foreign key (registrant_id) references registration_registrants (id);
+alter table registration_tickets add constraint FK9mt1mg0dk0hyy0i12tv901151 foreign key (ticket_type_id) references registration_ticket_types (id);
